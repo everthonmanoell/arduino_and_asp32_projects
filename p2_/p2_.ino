@@ -2,6 +2,9 @@ const int buzzer_pin = 27;
 const int led_pin = 13;
 const int button_pin = 26;
 const int motor_pin = 14;
+const int ldl_pin = 12;
+#include <ESP32Servo.h>
+Servo myservo;
 
 #define NOTE_C7  2093
 
@@ -81,7 +84,37 @@ void test_display_7_s(){
 
 }
 
+void test_servo_motor(){
+  //sentido horário
+  for(int pos = 0; pos <= 180; pos++){
+            myservo.write(pos);
+          }
 
+  //sentido horário
+  for(int pos = 180; pos >= 0; pos--){
+    myservo.write(pos);
+  }
+}
+
+void test_ldr(){
+  int value_light_pin = analogRead(ldl_pin);
+  float voltage = value_light_pin * (5.0 / 1023.0);
+
+  Serial.println(voltage);
+
+  if(voltage >= 0.70) 
+  {
+    digitalWrite(led_pin, HIGH);
+    delay(1000);
+    
+    // state = WAITFORPRESENCE;
+    Serial.println("Estado WAITFORPRESENCE");
+  }else{
+    digitalWrite(led_pin, LOW);
+    delay(1000);
+    
+  }
+}
 
 void setup() {
 
@@ -96,13 +129,15 @@ void setup() {
   pinMode(F, OUTPUT);
   pinMode(G, OUTPUT);
 
+  myservo.attach(motor_pin);
+
 
   Serial.begin(115200);
 
 }
 
 void loop() {
-  
-  
+    // test_servo_motor();
+    test_ldr();
 
 }
