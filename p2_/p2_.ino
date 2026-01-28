@@ -1,11 +1,4 @@
-const int buzzer_pin = 27;
-const int led_pin = 13;
-const int button_pin = 26;
-const int motor_pin = 14;
-const int ldl_pin = 12;
 #include <ESP32Servo.h>
-Servo myservo;
-
 #define NOTE_C7  2093
 
 //Display Segmento
@@ -16,6 +9,35 @@ Servo myservo;
 #define E 17
 #define F 19
 #define G 21
+
+
+const int buzzer_pin = 27;
+const int led_red = 13;
+const int button = 26;
+const int motor_pin = 14;
+const int light_pin = 12;
+int incorrect_password = 0;
+const int time_limit = 9;
+int count_time = 0;
+int password_ = 123;
+
+
+Servo myservo;
+
+enum State{
+  SYSTEMOFF,
+  SYSTEMON,
+  ALARMON,
+  WAITFORPRESENCE,
+  ASKFORPASSWORD,
+  SHOWERRORMESSAGE,
+  SHOWFINALERRORMESSAGE,
+  PLAYINGBUZZERANDLEDBLINKINGFOREVER,
+  CORRECTPASSWORD
+
+} state;
+
+
 
 bool sete_segmentos[10][7] = { 
   { 1,1,1,1,1,1,0 }, // = Digito 0
@@ -45,18 +67,18 @@ void escreverNumero(int numero) {
 
 void test_button_with_led(){
 
-  int button_pressed = digitalRead(button_pin);
+  int button_pressed = digitalRead(button);
 
     Serial.println(button_pressed);
 
     if(button_pressed == LOW)
     {
-      digitalWrite(led_pin, HIGH);
+      digitalWrite(led_red, HIGH);
       delay(1000);
 
 
     } else {
-      digitalWrite(led_pin, LOW);
+      digitalWrite(led_red, LOW);
       delay(1000);
 
     }
@@ -97,20 +119,20 @@ void test_servo_motor(){
 }
 
 void test_ldr(){
-  int value_light_pin = analogRead(ldl_pin);
+  int value_light_pin = analogRead(light_pin);
   float voltage = value_light_pin * (5.0 / 1023.0);
 
   Serial.println(voltage);
 
   if(voltage >= 0.70) 
   {
-    digitalWrite(led_pin, HIGH);
+    digitalWrite(led_red, HIGH);
     delay(1000);
     
     // state = WAITFORPRESENCE;
     Serial.println("Estado WAITFORPRESENCE");
   }else{
-    digitalWrite(led_pin, LOW);
+    digitalWrite(led_red, LOW);
     delay(1000);
     
   }
@@ -118,8 +140,9 @@ void test_ldr(){
 
 void setup() {
 
-  pinMode(led_pin, OUTPUT);
-  pinMode(button_pin, INPUT_PULLUP);
+  pinMode(led_red, OUTPUT);
+  pinMode(button, INPUT_PULLUP);
+  pinMode(light_pin, INPUT);
 
   pinMode(A, OUTPUT);
   pinMode(B, OUTPUT);
@@ -136,8 +159,176 @@ void setup() {
 
 }
 
-void loop() {
-    // test_servo_motor();
-    test_ldr();
+void loop()
+{
 
+  switch(state){
+
+    case SYSTEMOFF: {
+
+      escreverNumero(0);
+      count_time = 0;
+
+      int state_button = digitalRead(button);
+      
+      if(state_button == HIGH)
+      {
+        state = SYSTEMON;
+        Serial.println("Estado SYSTEMON");
+      }
+      
+      break;
+
+    }
+    
+
+    case SYSTEMON: {
+      
+      for(int second = 0; second < 10; second++)
+      {
+        
+        digitalWrite(led_red, LOW);
+        delay(1000);
+        digitalWrite(led_red, HIGH);
+        Serial.println(second);
+        escreverNumero(second);
+
+      }
+       
+      digitalWrite(led_red, LOW);
+        
+      delay(1000);
+      
+      state = ALARMON;
+      Serial.println("Estado ALARMON");
+
+      break;
+      
+    }
+
+    
+    case ALARMON: {
+      int value_light_pin = analogRead(light_pin);
+      float voltage = value_light_pin * (5.0 / 1023.0);
+
+      if(voltage >= 0.70) 
+      {
+        delay(1000);
+        
+        state = WAITFORPRESENCE;
+        Serial.println("Estado WAITFORPRESENCE");
+      }
+
+      break;
+
+    }
+
+
+    case WAITFORPRESENCE: {
+
+      for(int buzzer_count = 0; buzzer_count < 2; buzzer_count++)
+      {
+        buzzer_function(NOTE_C7,250,1);
+        delay(200);
+        
+      }
+      
+      //delay(1000);
+
+      state = ASKFORPASSWORD;
+      Serial.println("Estado ASKFORPASSWORD");
+
+
+      break;
+
+    }
+
+
+    case ASKFORPASSWORD: { //HE'RE HERE
+      Serial.println("Digite a senha: ");
+      
+      int serial = Serial.available();
+ 
+      
+      if(serial > 0){
+          int password = Serial.parseInt();
+        
+        if(password == password_)
+        {
+          delay(1000);
+          state = SYSTEMOFF;
+          Serial.println("Senha correta, alarme desativado");
+          incorrect_password = 0;
+        }
+        
+        else if(password != password_)
+        {
+          incorrect_password++;
+          
+          delay(1000);
+          
+          state = SHOWERRORMESSAGE;
+        }
+        
+          
+      }else{
+        
+        if (count_time == time_limit)
+        {
+          
+          incorrect_password++;
+          state = SHOWERRORMESSAGE;
+            
+        }
+        
+        Serial.println(count_time);
+        escreverNumero(count_time);
+        count_time++;
+        delay(1000);
+        
+        
+      }
+     
+     
+      break;
+      
+    }
+
+    
+    case SHOWERRORMESSAGE: {
+      Serial.println("Senha incorreta ou tempo expirado!!");
+      
+      if(incorrect_password < 2)
+      {
+        count_time = 0;
+        
+        delay(2000);
+        
+        state = ASKFORPASSWORD;
+      }
+      
+      else if(incorrect_password > 1)
+      {
+        delay(1000);
+
+        state = PLAYINGBUZZERANDLEDBLINKINGFOREVER;
+      }
+    
+      break;
+
+    }
+
+    
+    case PLAYINGBUZZERANDLEDBLINKINGFOREVER: {  
+      buzzer_function(NOTE_C7, 250, 1);
+
+      digitalWrite(led_red, LOW);
+      delay(1000);
+      digitalWrite(led_red, HIGH);
+
+    }
+
+
+  }
+  
 }
