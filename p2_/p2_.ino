@@ -2,13 +2,13 @@
 #define NOTE_C7  2093
 
 //Display Segmento
-#define A 18
-#define B 5
-#define C 4
-#define D 16
-#define E 17
-#define F 19
-#define G 21
+#define A 16
+#define B 17
+#define C 19
+#define D 18
+#define E 5
+#define F 4
+#define G 0
 
 
 const int buzzer_pin = 27;
@@ -16,10 +16,14 @@ const int led_red = 13;
 const int button = 26;
 const int motor_pin = 14;
 const int light_pin = 12;
+const int touch_pin = 2;
+
+
 int incorrect_password = 0;
 const int time_limit = 9;
 int count_time = 0;
 int password_ = 123;
+
 
 
 Servo myservo;
@@ -64,6 +68,14 @@ void escreverNumero(int numero) {
 
 }
 
+void test_touch_pin_with_led(){
+  int touch = touchRead(touch_pin);
+  Serial.println(touch);
+  delay(500);
+
+  
+  int touch_detection = 360;
+}
 
 void test_button_with_led(){
 
@@ -167,13 +179,16 @@ void setup() {
   pinMode(G, OUTPUT);
 
   myservo.attach(motor_pin);
+  escreverNumero(0);
 
 
   Serial.begin(115200);
 
 }
 
-void loop()
+
+
+void principal()
 {
 
   switch(state){
@@ -242,7 +257,7 @@ void loop()
 
       for(int buzzer_count = 0; buzzer_count < 2; buzzer_count++)
       {
-        buzzer_function(NOTE_C7,250,1);
+        buzzer_function(buzzer_pin ,NOTE_C7,250,1);
         delay(200);
         
       }
@@ -334,7 +349,7 @@ void loop()
 
     
     case PLAYINGBUZZERANDLEDBLINKINGFOREVER: {  
-      buzzer_function(NOTE_C7, 250, 1);
+      buzzer_function(buzzer_pin, NOTE_C7, 250, 1);
 
       digitalWrite(led_red, LOW);
       delay(1000);
@@ -345,4 +360,13 @@ void loop()
 
   }
   
+}
+
+void loop(){
+  //test_display_7_s();
+  //test_button_with_led();
+  //buzzer_function(buzzer_pin, NOTE_C7, 250, 1);
+  // test_servo_motor();
+  // test_ldr();
+  test_touch_pin_with_led();
 }
