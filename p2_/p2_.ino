@@ -138,7 +138,7 @@ void move_servo_positive(int degrees){
 }
 
 void move_servo_negative(int degrees){
-  for(int pos = 0; pos >= degrees; pos--){
+  for(int pos = degrees; pos >= 0; pos--){
             myservo.write(pos);
           }
 
@@ -166,6 +166,7 @@ void test_ldr(){
 
 void setup() {
 
+
   pinMode(led_red, OUTPUT);
   pinMode(button, INPUT_PULLUP);
   pinMode(light_pin, INPUT);
@@ -184,26 +185,30 @@ void setup() {
 
   Serial.begin(115200);
 
+  state = SYSTEMOFF;
+
 }
 
 
 
-void principal()
+void loop()
 {
-
+  
   switch(state){
 
     case SYSTEMOFF: {
-
+      //move_servo_negative(90);
+      myservo.write(-90);
+      Serial.println("systemoff motor negative");
       escreverNumero(0);
       count_time = 0;
 
       int state_button = digitalRead(button);
       
-      if(state_button == HIGH)
+      if(state_button == LOW)
       {
         state = SYSTEMON;
-        Serial.println("Estado SYSTEMON");
+        Serial.println("Estado SYSTEMON_");
       }
       
       break;
@@ -212,6 +217,8 @@ void principal()
     
 
     case SYSTEMON: {
+
+      Serial.println("entrei no systemon");
       
       for(int second = 0; second < 10; second++)
       {
@@ -239,7 +246,8 @@ void principal()
     case ALARMON: {
       int value_light_pin = analogRead(light_pin);
       float voltage = value_light_pin * (5.0 / 1023.0);
-
+      //move_servo_positive(90);
+      myservo.write(116);
       if(voltage >= 0.70) 
       {
         delay(1000);
@@ -362,11 +370,11 @@ void principal()
   
 }
 
-void loop(){
+void test_all(){
   //test_display_7_s();
   //test_button_with_led();
   //buzzer_function(buzzer_pin, NOTE_C7, 250, 1);
   // test_servo_motor();
   // test_ldr();
-  test_touch_pin_with_led();
+  //test_touch_pin_with_led();
 }
