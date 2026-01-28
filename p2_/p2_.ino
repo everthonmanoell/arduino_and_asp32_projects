@@ -118,6 +118,20 @@ void test_servo_motor(){
   }
 }
 
+void move_servo_positive(int degrees){
+  for(int pos = 0; pos <= degrees; pos++){
+            myservo.write(pos);
+          }
+
+}
+
+void move_servo_negative(int degrees){
+  for(int pos = 0; pos >= degrees; pos--){
+            myservo.write(pos);
+          }
+
+}
+
 void test_ldr(){
   int value_light_pin = analogRead(light_pin);
   float voltage = value_light_pin * (5.0 / 1023.0);
