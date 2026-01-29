@@ -1,17 +1,16 @@
 import smtplib
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
-import getpass # Para ocultar a senha ao digitar no terminal
-from constants import SMTP_SERVER, SMTP_PORT_TLS, DEFAULT_SENDER, DEFAULT_PASSWORD, DEFAULT_RECIPIENT
+from constants import DEFAULT_SENDER, DEFAULT_PASSWORD, DEFAULT_RECIPIENT, SMTP_PORT_TLS_GMAIL, SMTP_SERVER_GMAIL
 
-def enviar_email_generico(
+def SendEmail(
     remetente_email: str,
     remetente_senha: str,
     destinatario_email: str,
     assunto: str,
     corpo_mensagem: str,
-    smtp_server: str = 'smtp-mail.outlook.com',
-    smtp_port: int = 587
+    smtp_server: str = SMTP_SERVER_GMAIL,
+    smtp_port: int = SMTP_PORT_TLS_GMAIL
 ):
     """
     Função genérica para envio de e-mails via SMTP.
@@ -28,10 +27,12 @@ def enviar_email_generico(
     try:
         # Criação do objeto SMTP
         server = smtplib.SMTP(smtp_server, smtp_port)
+        # Identificação do Servidor
         server.ehlo()
         
         # Criptografia TLS (Segurança)
         server.starttls()
+        # Re-identificação do Servidor
         server.ehlo()
 
         # Login
@@ -57,21 +58,18 @@ def enviar_email_generico(
 if __name__ == "__main__":
     print("--- Sistema de Envio de E-mail ---")
     
-    # Coleta de dados (pode vir de um banco de dados ou input)
-    meu_email = input("Seu e-mail: ")
-    # getpass esconde a senha enquanto você digita
-    minha_senha = getpass.getpass("Sua senha (ou App Password): ") 
-    email_destino = input("E-mail de destino: ")
+    
+    meu_email = DEFAULT_SENDER
+    minha_senha = DEFAULT_PASSWORD
+    email_destino = DEFAULT_RECIPIENT
     assunto_msg = "Teste de Refatoração"
     mensagem = "Olá, este é um e-mail enviado pelo código refatorado e genérico."
 
-    # Chamada da função
-    # Nota: Se for Gmail, mude o smtp_server para 'smtp.gmail.com'
-    enviar_email_generico(
+    SendEmail(
         remetente_email=meu_email,
         remetente_senha=minha_senha,
         destinatario_email=email_destino,
         assunto=assunto_msg,
         corpo_mensagem=mensagem
-        # smtp_server e port usam o padrão do Outlook definido na função
+        
     )
