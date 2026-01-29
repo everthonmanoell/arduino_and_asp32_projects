@@ -4,7 +4,7 @@ import time
 
 import json
 
-with open("server/logins.json", "r") as file:
+with open("store/logins.json", "r") as file:
      users:dict = json.load(file)
 
 
