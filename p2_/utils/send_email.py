@@ -1,8 +1,28 @@
+import os
 import smtplib
-from email.mime.text import MIMEText
+import sys
 from email.mime.multipart import MIMEMultipart
-from constants import DEFAULT_RECIPIENT, SMTP_PORT_TLS_GMAIL, SMTP_SERVER_GMAIL, DEFAULT_PASSWORD, DEFAULT_SENDER, DEFAULT_RECIPIENT_2
+from email.mime.text import MIMEText
 
+# Add utils to path
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+
+try:
+    from constants import (
+        DEFAULT_PASSWORD,
+        DEFAULT_RECIPIENT,
+        DEFAULT_SENDER,
+        SMTP_PORT_TLS_GMAIL,
+        SMTP_SERVER_GMAIL,
+    )
+except ImportError:
+    from utils.constants import (
+        DEFAULT_PASSWORD,
+        DEFAULT_RECIPIENT,
+        DEFAULT_SENDER,
+        SMTP_PORT_TLS_GMAIL,
+        SMTP_SERVER_GMAIL,
+    )
 
 def SendEmail(
     remetente_email: str,
@@ -16,6 +36,11 @@ def SendEmail(
     """
     Função genérica para envio de e-mails via SMTP.
     """
+    print(f"📧 Iniciando envio de e-mail...")
+    print(f"   De: {remetente_email}")
+    print(f"   Para: {destinatario_email}")
+    print(f"   Assunto: {assunto}")
+    
     # Configuração da Mensagem (MIME)
     msg = MIMEMultipart()
     msg['From'] = remetente_email
@@ -29,10 +54,9 @@ def SendEmail(
         # Criação do objeto SMTP
         server = smtplib.SMTP(smtp_server, smtp_port)
         # Identificação do Servidor
-        server.ehlo()
-        
+        server.ehlo()        
         # Criptografia TLS (Segurança)
-        server.starttls()
+        server.starttls()        
         # Re-identificação do Servidor
         server.ehlo()
 
@@ -42,18 +66,22 @@ def SendEmail(
         # Envio
         text = msg.as_string()
         server.sendmail(remetente_email, destinatario_email, text)
-        
+
         # Fechamento da conexão
         server.quit()
         print(f"✅ E-mail enviado com sucesso para: {destinatario_email}")
         return True
 
-    except smtplib.SMTPAuthenticationError:
-        print("❌ Erro de Autenticação: Verifique seu e-mail e senha (ou App Password).")
+    except smtplib.SMTPAuthenticationError as e:
+        print(f"❌ Erro de Autenticação: Verifique seu e-mail e senha (ou App Password).")
+        print(f"   Detalhes: {e}")
+    except smtplib.SMTPException as e:
+        print(f"❌ Erro SMTP: {e}")
     except Exception as e:
-        print(f"❌ Erro ao enviar e-mail: {e}")
+        print(f"❌ Erro ao enviar e-mail: {type(e).__name__}: {e}")
     
     return False
+
 
 # --- BLOCO DE EXECUÇÃO (EXEMPLO) ---
 if __name__ == "__main__":
@@ -63,7 +91,7 @@ if __name__ == "__main__":
     meu_email = DEFAULT_SENDER
     minha_senha = DEFAULT_PASSWORD
     email_destino = DEFAULT_RECIPIENT
-    assunto_msg = "Teste de Refatoração-2"
+    assunto_msg = "Teste de Refatoração-3"
     mensagem = "Olá, este é um e-mail enviado pelo código refatorado e genérico.2"
 
     SendEmail(
