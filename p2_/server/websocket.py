@@ -5,7 +5,7 @@ import time
 import json
 
 #Access file with logins
-with open("server/logins.json", "r") as file:
+with open("store/logins.json", "r") as file:
      users:dict = json.load(file)
 
 #Configure server connection
