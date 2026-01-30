@@ -1,7 +1,8 @@
 import smtplib
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
-from constants import DEFAULT_SENDER, DEFAULT_PASSWORD, DEFAULT_RECIPIENT, SMTP_PORT_TLS_GMAIL, SMTP_SERVER_GMAIL
+from constants import DEFAULT_RECIPIENT, SMTP_PORT_TLS_GMAIL, SMTP_SERVER_GMAIL, DEFAULT_PASSWORD, DEFAULT_SENDER, DEFAULT_RECIPIENT_2
+
 
 def SendEmail(
     remetente_email: str,
@@ -62,8 +63,8 @@ if __name__ == "__main__":
     meu_email = DEFAULT_SENDER
     minha_senha = DEFAULT_PASSWORD
     email_destino = DEFAULT_RECIPIENT
-    assunto_msg = "Teste de Refatoração"
-    mensagem = "Olá, este é um e-mail enviado pelo código refatorado e genérico."
+    assunto_msg = "Teste de Refatoração-2"
+    mensagem = "Olá, este é um e-mail enviado pelo código refatorado e genérico.2"
 
     SendEmail(
         remetente_email=meu_email,
