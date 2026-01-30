@@ -11,7 +11,7 @@
 #define F 4
 #define G 32
 
-const char* ssid     = "OKFiBRA-14-5G";
+const char* ssid = "OKFiBRA-14-2.4Ghz";
 const char* password = "C3Li4w1F1R3si";
 
 //const char* host = "www.google.com"; 
@@ -253,8 +253,12 @@ void setup() {
 // }
 
 
+void loop(){
+  int value_light_pin = analogRead(light_pin);
+  Serial.println(value_light_pin);
 
-void loop()
+}
+void sloop()
 {
   
   switch(state){
@@ -424,7 +428,8 @@ void loop()
     }
 
     case CORRECTPASSWORD: {
-      Serial.println("Senha correta!!")
+      Serial.println("Senha correta!!");
+      state = PLAYINGBUZZERANDLEDBLINKINGFOREVER;
 
 
     }
