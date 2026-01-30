@@ -15,7 +15,7 @@ const char* password = "Softex2023";
 const char* host = "192.168.1.19";
 
 WiFiClient client;
-
+ 
 void setup()
 {
     Serial.begin(115200);
