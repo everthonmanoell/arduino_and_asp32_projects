@@ -11,8 +11,8 @@
 #define F 4
 #define G 32
 
-const char* ssid     = "Softex_Conv";
-const char* password = "Softex2023";
+const char* ssid     = "OKFiBRA-14-5G";
+const char* password = "C3Li4w1F1R3si";
 
 //const char* host = "www.google.com"; 
 const char* host = ""; //[IP]
@@ -29,11 +29,11 @@ int incorrect_password = 0;
 const int time_limit = 9;
 int count_time = 0;
 int password_ = 123;
+String user_name;
 
 
 
 Servo myservo;
-WiFiClient client;
 
 enum State{
   SYSTEMOFF,
@@ -171,41 +171,42 @@ void test_ldr(){
   }
 }
 
+// Função para buscar dados no servidor
+// Retorna a String com a resposta (ex: "Joao Silva") ou vazio se falhar
+String searchUserInServer(String id_usuario) {
+  
+  WiFiClient client; // Cria um cliente temporário
+  const int httpPort = 8080; // Porta do Python
 
-void wifi_connect(){
+  // 1. Tenta Conectar
+  if (!client.connect(host, httpPort)) {
+    Serial.println("Falha ao conectar no Python!");
+    return "";
+  }
 
-  delay(5000);
+  // 2. Envia o Pedido com o ID
+  // Envia: GET /20029
+  client.print(String("GET /") + id_usuario + " \r\n\r\n");
 
-    Serial.print("connecting to ");
-    Serial.println(host);
-
-    // Use WiFiClient class to create TCP connections
-
-    const int httpPort = 8080;
-    if (!client.connect(host, httpPort)) {
-        Serial.println("connection failed");
-        return;
+  // 3. Espera chegar dados (com timeout de 2s)
+  unsigned long timeout = millis();
+  while (client.available() == 0) {
+    if (millis() - timeout > 2000) {
+      Serial.println(">>> Timeout: Servidor demorou responder!");
+      client.stop();
+      return "";
     }
+  }
 
-    client.print(String("GET /") + " \r\n\r\n");
-    unsigned long timeout = millis();
-    while (client.available() == 0) {
-        if (millis() - timeout > 5000) {
-            Serial.println(">>> Client Timeout !");
-            client.stop();
-            return;
-        }
-    }
+  // 4. Lê a resposta
+  String resposta = "";
+  while (client.available()) {
+    // Lê tudo o que veio
+    resposta = client.readStringUntil('\r');
+  }
 
-    // Read all the lines of the reply from server and print them to Serial
-    while(client.available()) {
-        String line = client.readStringUntil('\r');
-        Serial.print(line);
-    }
-    client.stop();
-    Serial.println();
-    Serial.println("closing connection");
-
+  client.stop(); // Fecha a conexão
+  return resposta;
 }
 
 void setup() {
@@ -343,7 +344,7 @@ void loop()
     }
 
 
-    case ASKFORPASSWORD: { //HE'RE HERE
+    case ASKFORPASSWORD: { 
       Serial.println("Digite a senha: ");
       
       int serial = Serial.available();
@@ -351,26 +352,22 @@ void loop()
       
       if(serial > 0){
           int password = Serial.parseInt();
-        
-        if(password == password_)
-        {
-          delay(1000);
-          state = SYSTEMOFF;
-          Serial.println("Senha correta, alarme desativado");
-          incorrect_password = 0;
-        }
-        
-        else if(password != password_)
-        {
-          incorrect_password++;
-          
-          delay(1000);
-          
-          state = SHOWERRORMESSAGE;
-        }
+          String result = searchUserInServer(String(password));
+            if(result != "" && result != "error2times"){ // if this is true, the autentication was true and return the name of user
+              delay(1000);
+              user_name = result; //save the user name
+              incorrect_password = 0;
+              state = CORRECTPASSWORD;
+            }else{
+              incorrect_password++;
+              
+              delay(1000);
+              
+              state = SHOWERRORMESSAGE;
+            }
         
           
-      }else{
+      }else{ // occur when don't put any password try in the serial output
         
         if (count_time == time_limit)
         {
@@ -406,14 +403,29 @@ void loop()
         state = ASKFORPASSWORD;
       }
       
-      else if(incorrect_password > 1)
+      else if(incorrect_password > 1) // occur when the limite try is over
       {
         delay(1000);
 
-        state = PLAYINGBUZZERANDLEDBLINKINGFOREVER;
+        state = SHOWFINALERRORMESSAGE;
       }
     
       break;
+
+    }
+
+    case SHOWFINALERRORMESSAGE: {
+      delay(1000);
+      String result = searchUserInServer("0000");
+      Serial.println(result);
+      state = PLAYINGBUZZERANDLEDBLINKINGFOREVER;
+
+      break;
+    }
+
+    case CORRECTPASSWORD: {
+      Serial.println("Senha correta!!")
+
 
     }
 
