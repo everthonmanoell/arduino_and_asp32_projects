@@ -307,11 +307,11 @@ void sloop() {
     case ALARMON:
       {
         int value_light_pin = analogRead(light_pin);
-        float voltage = value_light_pin * (5.0 / 1023.0);
+        float voltage = value_light_pin * (3.3 / 4095.0);
         int value_touch_pin = touchRead(touch_pin);
         //move_servo_positive(90);
         myservo.write(116);
-        if (voltage >= 0.70 || value_touch_pin < 1000) {
+        if (voltage >= 0.20 || value_touch_pin < 1000) {
           delay(1000);
 
           state = WAITFORPRESENCE;
