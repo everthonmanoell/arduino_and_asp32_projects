@@ -65,14 +65,14 @@ void setup() {
 void loop() {
   // put your main code here, to run repeatedly:
 
-  int ldr_value = analogRead(ldr_pin);
-  float ldr_voltage = ldr_value * (3.3 / 4095.0);
+  // int ldr_value = analogRead(ldr_pin);
+  // float ldr_voltage = ldr_value * (3.3 / 4095.0);
 
-  Serial.print("Valor cru do ldr: ");
-  Serial.print(ldr_value);
-  Serial.print(" || Voltagem: ");
-  Serial.println(ldr_voltage);
-  delay(500);
+  // Serial.print("Valor cru do ldr: ");
+  // Serial.print(ldr_value);
+  // Serial.print(" || Voltagem: ");
+  // Serial.println(ldr_voltage);
+  // delay(500);
 
   // int touch_result = touchRead(touch_pin);
   // Serial.println(touch_result);

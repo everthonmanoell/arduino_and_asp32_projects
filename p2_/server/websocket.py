@@ -18,6 +18,8 @@ class Server():
     with open("store/logins.json", "r") as file:
         users:dict = json.load(file)
 
+    print(f"users: {users}")
+
     #Configure server connection
     mysock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     hostname = socket.gethostname()
@@ -37,20 +39,28 @@ class Server():
         conn,addr = mysock.accept()
         data = conn.recv(1000) #Receive requests
 
-        time.sleep(3)
+        #time.sleep(3)
         
         if not data:
             break
         
+        # # if CTR+C is pressed, stop the server
+        # if KeyboardInterrupt:
+        #     print("Server stopped by user")
+        #     break
         print("Got a request!!!")
         
         #Captures information sent by the customercdc
         data = str(data,'UTF-8')
+        print("Data: " + data)
         
         if data.find("GET") != -1:
+
             indexOption = data.find("/") + 1
-            
-            user = users.get(data[indexOption:], "")
+            raw_id = data[indexOption:].strip()
+            print("ID Capturado: " + raw_id)
+            user = users.get(raw_id, "")
+            print("USER Capturado: " + user)
             
             if "error2times" != user and user != "":
                 print("USUÁRIO AUTENTICADO") 
@@ -69,7 +79,7 @@ class Server():
                 message = user
             else:
                 print("USUÁRIO NÃO EXISTE")
-                message = "USUÁRIO NÃO EXISTE OU SENHA INVÁLIDA"
+                message = ""
             
         
         #Sends a response to the customer

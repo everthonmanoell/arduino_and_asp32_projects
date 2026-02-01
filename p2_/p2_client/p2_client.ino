@@ -11,11 +11,11 @@
 #define F 4
 #define G 32
 
-const char* ssid = "IGnet_Adolfo";
-const char* password = "adolfo1972";
+const char* ssid = "ABILITY_FIBRA_Madimbu";
+const char* password = "CasaBranca5161#";
 
 //const char* host = "www.google.com";
-const char* host = "";  //[IP]
+const char* host = "192.168.1.14";  //[IP SERVER]
 
 const int buzzer_pin = 27;
 const int led_red = 12;
@@ -30,6 +30,7 @@ const int time_limit = 9;
 int count_time = 0;
 int password_ = 123;
 String user_name;
+int current_stepper_engine_degrees = 0;
 
 
 
@@ -133,12 +134,14 @@ void test_servo_motor() {
 void move_servo_positive(int degrees) {
   for (int pos = 0; pos <= degrees; pos++) {
     myservo.write(pos);
+    current_stepper_engine_degrees = pos;
   }
 }
 
 void move_servo_negative(int degrees) {
   for (int pos = degrees; pos >= 0; pos--) {
     myservo.write(pos);
+    current_stepper_engine_degrees = pos;
   }
 }
 
@@ -174,13 +177,13 @@ String searchUserInServer(String id_usuario) {
   }
 
   // 2. Envia o Pedido com o ID
-  // Envia: GET /20029
-  client.print(String("GET /") + id_usuario + " \r\n\r\n");
+  // Envia: GET / id_usuario
+  client.print(String("GET /") + id_usuario + "\r\n\r\n");
 
   // 3. Espera chegar dados (com timeout de 2s)
   unsigned long timeout = millis();
   while (client.available() == 0) {
-    if (millis() - timeout > 2000) {
+    if (millis() - timeout > 10000) {
       Serial.println(">>> Timeout: Servidor demorou responder!");
       client.stop();
       return "";
@@ -188,14 +191,13 @@ String searchUserInServer(String id_usuario) {
   }
 
   // 4. Lê a resposta
-  String resposta = "";
-  while (client.available()) {
-    // Lê tudo o que veio
-    resposta = client.readStringUntil('\r');
-  }
-
+  // Lê tudo o que o servidor mandou de uma vez
+  String response = client.readString(); 
+  
+  // Limpa espaços em branco ou quebras de linha que possam vir junto
+  response.trim();
   client.stop();  // Fecha a conexão
-  return resposta;
+  return response;
 }
 
 void setup() {
@@ -241,7 +243,7 @@ void setup() {
 // }
 
 
-void loop() {
+void sloop() {
   // int value_light_pin = analogRead(light_pin);
   // Serial.println(value_light_pin);
   // for(int i = 0; i<10; i++){
@@ -253,18 +255,42 @@ void loop() {
   // delay(1000);
   // digitalWrite(led_red, LOW);
   // Serial.println("led low");
-  int button_pressed = digitalRead(button);
-  Serial.println(button_pressed);
+  // int button_pressed = digitalRead(button);
+  // Serial.println(button_pressed);
+
+  // Serial.println("Digite a senha: ");
+
+  int serial = Serial.available();
+
+
+  if (serial > 0) {
+    int password = Serial.parseInt();
+    String result = searchUserInServer(String(password));
+    Serial.println(result);
+    if (result != "" && result != "error2times") {  // if this is true, the autentication was true and return the name of user
+      delay(1000);
+      user_name = result;  //save the user name
+      incorrect_password = 0;
+      
+    }
+  }
+
 }
-void sloop() {
+void loop() {
 
   switch (state) {
 
     case SYSTEMOFF:
       {
         //move_servo_negative(90);
-        myservo.write(-90);
-        Serial.println("systemoff motor negative");
+        //myservo.write(-90);
+
+        // move to -90 degrees with current_stepper_engine_degrees relative
+        for (int i = current_stepper_engine_degrees; i >= -90; i-- ){
+          myservo.write(i);
+          current_stepper_engine_degrees = i;
+        }
+        Serial.println("SYSTEMOFF STATE");
         escreverNumero(0);
         count_time = 0;
 
@@ -272,7 +298,7 @@ void sloop() {
 
         if (state_button == LOW) {
           state = SYSTEMON;
-          Serial.println("Estado SYSTEMON_");
+          
         }
 
         break;
@@ -282,15 +308,17 @@ void sloop() {
     case SYSTEMON:
       {
 
-        Serial.println("entrei no systemon");
+        Serial.println("SYSTEMON STATE");
 
         for (int second = 0; second < 10; second++) {
-
+          
           digitalWrite(led_red, LOW);
-          delay(1000);
+          delay(500);
           digitalWrite(led_red, HIGH);
           Serial.println(second);
           escreverNumero(second);
+          delay(500);
+
         }
 
         digitalWrite(led_red, LOW);
@@ -306,34 +334,40 @@ void sloop() {
 
     case ALARMON:
       {
-        int value_light_pin = analogRead(light_pin);
-        float voltage = value_light_pin * (3.3 / 4095.0);
-        int value_touch_pin = touchRead(touch_pin);
-        //move_servo_positive(90);
-        myservo.write(116);
-        if (voltage >= 0.20 || value_touch_pin < 1000) {
-          delay(1000);
-
-          state = WAITFORPRESENCE;
-          Serial.println("Estado WAITFORPRESENCE");
-        }
-
+        
+        move_servo_positive(116);
+        state = WAITFORPRESENCE;
         break;
+
       }
 
 
     case WAITFORPRESENCE:
       {
-
-        for (int buzzer_count = 0; buzzer_count < 2; buzzer_count++) {
-          buzzer_function(buzzer_pin, NOTE_C7, 250, 1);
-          delay(200);
-        }
+        Serial.println("Estado WAITFORPRESENCE");
+        int value_light_pin = analogRead(light_pin);
+        float voltage = value_light_pin * (3.3 / 4095.0);
+        int value_touch_pin = touchRead(touch_pin);
 
         //delay(1000);
 
-        state = ASKFORPASSWORD;
-        Serial.println("Estado ASKFORPASSWORD");
+        if (voltage >= 0.20 || value_touch_pin < 1000) {
+          delay(1000);
+
+          for (int buzzer_count = 0; buzzer_count < 2; buzzer_count++) {
+            buzzer_function(buzzer_pin, NOTE_C7, 250, 1);
+            delay(200);
+          }
+
+          state = ASKFORPASSWORD;
+          
+          Serial.println("Estado ASKFORPASSWORD");
+        }
+
+        
+
+        
+        
 
 
         break;
@@ -408,7 +442,7 @@ void sloop() {
     case SHOWFINALERRORMESSAGE:
       {
         delay(1000);
-        String result = searchUserInServer("0000");
+        String result = searchUserInServer("1111");
         Serial.println(result);
         state = PLAYINGBUZZERANDLEDBLINKINGFOREVER;
 
@@ -418,7 +452,10 @@ void sloop() {
     case CORRECTPASSWORD:
       {
         Serial.println("Senha correta!!");
-        state = PLAYINGBUZZERANDLEDBLINKINGFOREVER;
+        Serial.print("O usuario: [ ");
+        Serial.print(user_name);
+        Serial.println(" ] desligou o alarme.");
+        state = SYSTEMOFF;
       }
 
 
