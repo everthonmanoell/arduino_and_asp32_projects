@@ -183,7 +183,7 @@ String searchUserInServer(String id_usuario) {
   // 3. Espera chegar dados (com timeout de 2s)
   unsigned long timeout = millis();
   while (client.available() == 0) {
-    if (millis() - timeout > 10000) {
+    if (millis() - timeout > 15000) {
       Serial.println(">>> Timeout: Servidor demorou responder!");
       client.stop();
       return "";
@@ -260,20 +260,33 @@ void sloop() {
 
   // Serial.println("Digite a senha: ");
 
-  int serial = Serial.available();
+  // int serial = Serial.available();
 
 
-  if (serial > 0) {
-    int password = Serial.parseInt();
-    String result = searchUserInServer(String(password));
-    Serial.println(result);
-    if (result != "" && result != "error2times") {  // if this is true, the autentication was true and return the name of user
-      delay(1000);
-      user_name = result;  //save the user name
-      incorrect_password = 0;
+  // if (serial > 0) {
+  //   int password = Serial.parseInt();
+  //   String result = searchUserInServer(String(password));
+  //   Serial.println(result);
+  //   if (result != "" && result != "error2times") {  // if this is true, the autentication was true and return the name of user
+  //     delay(1000);
+  //     user_name = result;  //save the user name
+  //     incorrect_password = 0;
       
+  //   }
+  // }
+
+
+  // move to -90 degrees with current_stepper_engine_degrees relative
+    Serial.println("-90");
+    for (int i = current_stepper_engine_degrees; i >= -90; i-- ){
+      myservo.write(i);
+      current_stepper_engine_degrees = i;
     }
-  }
+
+    delay(500);
+    Serial.println("123");
+    move_servo_positive(123);
+    delay(500);
 
 }
 void loop() {
@@ -386,7 +399,7 @@ void loop() {
           String result = searchUserInServer(String(password));
           if (result != "" && result != "error2times") {  // if this is true, the autentication was true and return the name of user
             delay(1000);
-            user_name = result;  //save the user name
+            user_name = result;  //save the user name in global variable
             incorrect_password = 0;
             state = CORRECTPASSWORD;
           } else {
