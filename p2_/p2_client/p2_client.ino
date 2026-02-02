@@ -11,11 +11,13 @@
 #define F 4
 #define G 32
 
-const char* ssid = "ABILITY_FIBRA_Madimbu";
-const char* password = "CasaBranca5161#";
+const char* ssid = "Softex_Conv";
+const char* password = "Softex2023";
 
 //const char* host = "www.google.com";
-const char* host = "192.168.1.14";  //[IP SERVER]
+const char* host = "192.168.158.21";  //[IP SERVER]
+
+const int port_ = 1919; //port
 
 const int buzzer_pin = 27;
 const int led_red = 12;
@@ -168,7 +170,7 @@ void test_ldr() {
 String searchUserInServer(String id_usuario) {
 
   WiFiClient client;          // Cria um cliente temporário
-  const int httpPort = 8080;  // Porta do Python
+  const int httpPort = port_;  // Porta do Python
 
   // 1. Tenta Conectar
   if (!client.connect(host, httpPort)) {
@@ -301,6 +303,7 @@ void loop() {
         // move to -90 degrees with current_stepper_engine_degrees relative
         for (int i = current_stepper_engine_degrees; i >= -90; i-- ){
           myservo.write(i);
+          Serial.println(i);
           current_stepper_engine_degrees = i;
         }
         Serial.println("SYSTEMOFF STATE");

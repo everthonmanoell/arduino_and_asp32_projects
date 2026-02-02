@@ -27,7 +27,7 @@ class Server():
     print(local_ip)
 
     try:
-        mysock.bind((local_ip,8080)) #Associates a created socket with a specific IP address and port number on the local host
+        mysock.bind((local_ip,1919)) #Associates a created socket with a specific IP address and port number on the local host
         
     except socket.error:
         print("Failed to bind")
