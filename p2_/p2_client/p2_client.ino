@@ -15,7 +15,7 @@ const char* ssid = "Softex_Conv";
 const char* password = "Softex2023";
 
 //const char* host = "www.google.com";
-const char* host = "192.168.158.21";  //[IP SERVER]
+const char* host = "192.168.158.61";  //[IP SERVER]
 
 const int port_ = 1919; //port
 
@@ -403,21 +403,22 @@ void loop() {
             String result = searchUserInServer(String("0000"));
           }else{
             String result = searchUserInServer(String(password));
-          }
           
-          if (result != "" && result != "error2times") {  // if this is true, the autentication was true and return the name of user
-            delay(1000);
-            user_name = result;  //save the user name in global variable
-            incorrect_password = 0;
-            state = CORRECTPASSWORD;
-          } else {
-            incorrect_password++;
+          
+            if (result != "" && result != "error2times") {  // if this is true, the autentication was true and return the name of user
+              delay(1000);
+              user_name = result;  //save the user name in global variable
+              incorrect_password = 0;
+              state = CORRECTPASSWORD;
+            } else {
+              incorrect_password++;
 
-            delay(1000);
+              delay(1000);
 
-            state = SHOWERRORMESSAGE;
+              state = SHOWERRORMESSAGE;
+            }
+
           }
-
 
         } else {  // occur when don't put any password try in the serial output
 
@@ -436,7 +437,6 @@ void loop() {
 
         break;
       }
-
 
     case SHOWERRORMESSAGE:
       {
