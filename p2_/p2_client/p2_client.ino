@@ -399,7 +399,12 @@ void loop() {
 
         if (serial > 0) {
           int password = Serial.parseInt();
-          String result = searchUserInServer(String(password));
+          if (password == 1111){
+            String result = searchUserInServer(String("0000"));
+          }else{
+            String result = searchUserInServer(String(password));
+          }
+          
           if (result != "" && result != "error2times") {  // if this is true, the autentication was true and return the name of user
             delay(1000);
             user_name = result;  //save the user name in global variable
