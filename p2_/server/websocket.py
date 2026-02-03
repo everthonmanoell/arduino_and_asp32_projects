@@ -59,10 +59,10 @@ class Server():
             indexOption = data.find("/") + 1
             raw_id = data[indexOption:].strip()
             print("ID Capturado: " + raw_id)
-            user = users.get(raw_id, "")
+            user = users.get(raw_id, "NOT_FOUND")
             print("USER Capturado: " + user)
             
-            if "error2times" != user and user != "":
+            if "error2times" != user and user != "NOT_FOUND":
                 print("USUÁRIO AUTENTICADO") 
                 print(user)
                 message = user
@@ -79,7 +79,7 @@ class Server():
                 message = user
             else:
                 print("USUÁRIO NÃO EXISTE")
-                message = ""
+                message = "NOT_FOUND"
             
         
         #Sends a response to the customer

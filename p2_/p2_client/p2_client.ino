@@ -14,8 +14,11 @@
 const char* ssid = "Softex_Conv";
 const char* password = "Softex2023";
 
+// const char* ssid = "eve";
+// const char* password = "pacosa24";
+
 //const char* host = "www.google.com";
-const char* host = "192.168.158.61";  //[IP SERVER]
+const char* host = "192.168.158.21";  //[IP SERVER]
 
 const int port_ = 1919; //port
 
@@ -170,7 +173,7 @@ void test_ldr() {
 String searchUserInServer(String id_usuario) {
 
   WiFiClient client;          // Cria um cliente temporário
-  const int httpPort = port_;  // Porta do Python
+  const int httpPort = 1919;  // Porta do Python
 
   // 1. Tenta Conectar
   if (!client.connect(host, httpPort)) {
@@ -303,7 +306,7 @@ void loop() {
         // move to -90 degrees with current_stepper_engine_degrees relative
         for (int i = current_stepper_engine_degrees; i >= -90; i-- ){
           myservo.write(i);
-          Serial.println(i);
+          //Serial.println(i);
           current_stepper_engine_degrees = i;
         }
         Serial.println("SYSTEMOFF STATE");
@@ -394,36 +397,53 @@ void loop() {
       {
         Serial.println("Digite a senha: ");
 
-        int serial = Serial.available();
-
-
-        if (serial > 0) {
+        // Verifica se tem dados
+        if (Serial.available() > 0) {
+          
           int password = Serial.parseInt();
-          if (password == 1111){
-            String result = searchUserInServer(String("0000"));
-          }else{
-            String result = searchUserInServer(String(password));
-          
-          
-            if (result != "" && result != "error2times") {  // if this is true, the autentication was true and return the name of user
-              delay(1000);
-              user_name = result;  //save the user name in global variable
-              incorrect_password = 0;
-              state = CORRECTPASSWORD;
-            } else {
-              incorrect_password++;
 
-              delay(1000);
-
-              state = SHOWERRORMESSAGE;
-            }
-
+          // --- CORREÇÃO 1: Limpeza do Buffer ---
+          // Isso joga fora o "Enter" (\n) que sobra no buffer
+          while (Serial.available() > 0) {
+            Serial.read();
           }
 
-        } else {  // occur when don't put any password try in the serial output
+          // --- CORREÇÃO 2: Ignorar leitura 0 (fantasma) ---
+          // parseInt retorna 0 se ler apenas sujeira. Ignoramos isso.
+          if (password == 0) {
+             break; // Sai do case e tenta de novo na próxima volta
+          }
 
-          if (count_time == time_limit) {
+          // Lógica normal continua aqui...
+          String result_server;
+          
+          if (password == 1111) {
+            result_server = searchUserInServer(String("0000")); // Teste forçado
+          } else {
+            result_server = searchUserInServer(String(password));
+          }
 
+          // Se a resposta for válida
+          if (result_server != "" && result_server != "error2times" && result_server != "NOT_FOUND") {
+            delay(1000);
+            user_name = result_server;
+            incorrect_password = 0;
+            state = CORRECTPASSWORD;
+          } 
+          else {
+            // Senha errada
+            incorrect_password++; // Incrementa erro (Vai para 1 na primeira vez)
+            Serial.print("Senha Incorreta! Tentativas: ");
+            Serial.println(incorrect_password);
+            
+            delay(1000);
+            state = SHOWERRORMESSAGE;
+          }
+
+        } else {  
+          // Lógica do tempo (Time Limit)
+          // Só conta o tempo se NINGUÉM estiver digitando nada
+          if (count_time >= time_limit) { // Mudei para >= por segurança
             incorrect_password++;
             state = SHOWERRORMESSAGE;
           }
@@ -433,8 +453,6 @@ void loop() {
           count_time++;
           delay(1000);
         }
-
-
         break;
       }
 
